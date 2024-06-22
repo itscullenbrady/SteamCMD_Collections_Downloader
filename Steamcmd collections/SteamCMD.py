@@ -32,21 +32,44 @@ def download_workshop_items(steamcmd_path, workshop_file, download_location):
         return
 
     # Create a SteamCMD script
-    steamcmd_script = 'steamcmd_script.txt'
+    steamcmd_script = os.path.join(os.getcwd(), 'steamcmd_script.txt')
     with open(steamcmd_script, 'w') as script_file:
         script_file.write('login anonymous\n')
         script_file.write(f'force_install_dir {download_location}\n')
         for command in commands:
             script_file.write(command)
-        script_file.write('quit\n')
+        script_file.write('\nquit\n')
+
+    print(f"Running SteamCMD with script {steamcmd_script}...")
 
     # Run the SteamCMD script
-    result = subprocess.run([steamcmd_path, '+runscript', steamcmd_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        # Use communicate() to interact with SteamCMD
+        process = subprocess.Popen([steamcmd_path, '+runscript', steamcmd_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    if result.returncode != 0:
-        print(f"Error running SteamCMD: {result.stderr.decode()}")
-    else:
-        print(f"Successfully ran SteamCMD script:\n{result.stdout.decode()}")
+        # Communicate with the process and handle output
+        while process.poll() is None:
+            output = process.stdout.readline()
+            if output:
+                print(output.strip())
+
+        # Check for any remaining output
+        remaining_output = process.communicate()[0]
+        if remaining_output:
+            print(remaining_output.decode().strip())
+
+        # Check for errors
+        stderr = process.stderr.read()
+        if stderr:
+            print(f"Error running SteamCMD: {stderr}")
+
+    except Exception as e:
+        print(f"Exception occurred while running SteamCMD: {e}")
+
+    finally:
+        # Clean up: delete the temporary SteamCMD script
+        if os.path.exists(steamcmd_script):
+            os.remove(steamcmd_script)
 
 if __name__ == "__main__":
     steamcmd_path = get_file_path("SteamCMD executable")

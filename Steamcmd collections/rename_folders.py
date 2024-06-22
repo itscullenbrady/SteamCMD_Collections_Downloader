@@ -1,4 +1,6 @@
 import os
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
 # Function to sanitize the folder name
 def sanitize_folder_name(name):
@@ -36,8 +38,21 @@ def rename_folders(base_folder):
                     else:
                         print(f"No valid name found for {mod_file_path}")
 
-# Define the path to your base folder containing subfolders
-base_folder = r"D:\games\Kenshi\mods"
+def select_base_folder():
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    
+    # Prompt user to select the base folder
+    base_folder = filedialog.askdirectory(title="Select Base Folder Containing Subfolders")
+    
+    if base_folder:
+        rename_folders(base_folder)
+        
+        # Show completion message
+        messagebox.showinfo("Operation Completed", "Folder renaming operation completed.")
+    else:
+        messagebox.showerror("Error", "No base folder selected. Operation aborted.")
 
-# Call the function to rename folders
-rename_folders(base_folder)
+if __name__ == "__main__":
+    # Call the function to select the base folder and rename folders
+    select_base_folder()
